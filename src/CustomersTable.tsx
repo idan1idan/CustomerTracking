@@ -17,6 +17,7 @@ import {
   useUpdateCustomerStatus,
   useCustomers,
 } from "./actions";
+import { StatusTimeline } from "./StatusTimeline";
 
 const statusFlow: CustomerStatus[] = [
   "Lead",
@@ -35,7 +36,7 @@ const statusFlow: CustomerStatus[] = [
   "Done",
 ];
 
-const getStatusColor = (status: CustomerStatus): string => {
+export const getStatusColor = (status: CustomerStatus): string => {
   switch (status) {
     case "Lead":
       return "bg-yellow-500 hover:bg-yellow-600";
@@ -163,7 +164,7 @@ export default function CustomerTable() {
                           )
                         }
                       >
-                        {expandedCustomer === customer.id ? "Hide" : "Show"}{" "}
+                        {expandedCustomer === customer.id ? "Hide" : "Show"}
                         Details
                       </Button>
                       <EditCustomerModal customer={customer} />
@@ -210,6 +211,11 @@ export default function CustomerTable() {
                               </Button>
                             ))}
                           </div>
+                        </div>
+                        <div className="mt-4">
+                          <StatusTimeline
+                            statusUpdates={customer.statusUpdates}
+                          />
                         </div>
                       </div>
                     </TableCell>

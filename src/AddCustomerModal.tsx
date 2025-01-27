@@ -28,6 +28,7 @@ export default function AddCustomerModal() {
       photoshootDate: formData.get("photoshootDate") as string,
       status: "Lead",
       location: formData.get("location") as string,
+      statusUpdates: [],
     });
     setOpen(false);
   };

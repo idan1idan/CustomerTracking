@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "./api";
-
+import { v4 as uuidv4 } from "uuid";
 export type CustomerStatus =
   | "Lead"
   | "Closed Contract"
@@ -17,6 +17,12 @@ export type CustomerStatus =
   | "Received"
   | "Done";
 
+export type StatusUpdate = {
+  id: string;
+  status: CustomerStatus;
+  date: string;
+};
+
 export type Customer = {
   id: string;
   name: string;
@@ -27,6 +33,7 @@ export type Customer = {
   photoshootDate: string;
   status: CustomerStatus;
   location: string;
+  statusUpdates: StatusUpdate[];
 };
 
 export const useCustomers = () => {
@@ -44,14 +51,14 @@ export const useAddCustomer = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (customer: Omit<Customer, "id">) => {
-      const newCustomer = { ...customer, id: Date.now().toString() };
+      const newCustomer = { ...customer, id: uuidv4() };
       await api.post("/customers", newCustomer);
       return newCustomer;
     },
     onSuccess(data) {
       queryClient.setQueryData<Customer[]>(["customers"], (oldData) => {
         if (oldData === undefined) return [data];
-        [...oldData, data];
+        return [...oldData, data];
       });
     },
   });
@@ -67,9 +74,26 @@ export const useUpdateCustomerStatus = () => {
       customerId: string;
       status: CustomerStatus;
     }) => {
+      const customer = queryClient
+        .getQueryData<Customer[]>(["customers"])
+        ?.filter((customer) => customer.id === customerId)[0];
+      if (!customer) throw new Error("Customer not found");
+      const newStatusUpdate = {
+        id: uuidv4(),
+        status,
+        date: new Date().toISOString(),
+      };
+      customer.statusUpdates = [
+        ...(customer.statusUpdates || []),
+        newStatusUpdate,
+      ];
+      await api.patch<Customer>(`/customers/${customerId}`, {
+        statusUpdates: customer.statusUpdates,
+      });
       const response = await api.patch<Customer>(`/customers/${customerId}`, {
         status,
       });
+
       return response.data;
     },
     onSuccess(updatedCustomer) {
