@@ -34,6 +34,7 @@ export default function EditCustomerModal({
         photoshootType: formData.get("photoshootType") as string,
         photoshootDate: formData.get("photoshootDate") as string,
         location: formData.get("location") as string,
+        statusUpdates: customer.statusUpdates,
       },
     });
     setOpen(false);
